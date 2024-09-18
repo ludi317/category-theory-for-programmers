@@ -177,15 +177,14 @@ fn never(_: bool) -> bool {
 
 1. Construct the Kleisli category for partial functions (define composition and identity).
 ```rust
-
 fn compose<T, U, V>(
-    f1: impl Fn(T) -> Option<U>,
-    f2: impl Fn(U) -> Option<V>,
+   f1: impl Fn(T) -> Option<U>,
+   f2: impl Fn(U) -> Option<V>,
 ) -> impl Fn(T) -> Option<V> {
-    move |x: T| match f1(x) {
-        Some(f1out) => f2(f1out),
-        None => None,
-    }
+   move |x: T| match f1(x) {
+      Some(f1out) => f2(f1out),
+      None => None,
+   }
 }
 
 fn safe_reciprocal(x: f64) -> Option<f64> {
@@ -206,10 +205,10 @@ fn safe_root(x: f64) -> Option<f64> {
 
  #[test]
  fn test_compose() {
-     let safe_root_reciprocal = compose(safe_root, safe_reciprocal);
-     assert_eq!(safe_root_reciprocal(4.0), Some(0.5));
-     assert_eq!(safe_root_reciprocal(0.0), None);
-     assert_eq!(safe_root_reciprocal(-1.0), None);
+    let safe_root_reciprocal = compose(safe_root, safe_reciprocal);
+    assert_eq!(safe_root_reciprocal(4.0), Some(0.5));
+    assert_eq!(safe_root_reciprocal(-1.0), None);
+    assert_eq!(safe_root_reciprocal(0.0), None);
  }
 
 ```
