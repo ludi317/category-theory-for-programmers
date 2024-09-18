@@ -130,4 +130,46 @@ fn never(_: bool) -> bool {
     false
 }
 ```
+## Section 3.6
+
+3. Considering that Bool is a set of two values True and False, show that it forms two (set-theoretical) monoids with respect to, respectively, operator && (AND) and || (OR).
+```text
+- AND:
+    - object: Bool Type = {True, False}
+    - identity: True && a = a, a && True = a
+    - associativity: (a && b) && c = a && (b && c)
+- OR:
+    - object: Bool Type = {True, False}
+    - identity: False || a = a, a || False = a
+    - associativity: (a || b) || c = a || (b || c)
+```
+4. Represent the Bool monoid with the AND operator as a category: List the morphisms and their rules of composition.
+```text
+- object: Bool Type = {True, False}
+- morphisms: && True, && False
+    - id = && True
+    - associativity: (a && b) && c = a && (b && c)
+- composition: 
+    - && True && True = && True
+    - && True && False = && False
+    - && False && True = && False
+    - && False && False = && False
+```
+5. Represent addition modulo 3 as a monoid category.
+```text
+- object: Z/3Z = {0, 1, 2}
+- morphisms: + 0, + 1, + 2
+    - id = + 0
+    - associativity: (a + b) + c = a + (b + c)
+- composition:
+    - + 0 + 0 = + 0
+    - + 0 + 1 = + 1
+    - + 0 + 2 = + 2
+    - + 1 + 0 = + 1
+    - + 1 + 1 = + 2
+    - + 1 + 2 = + 0
+    - + 2 + 0 = + 2
+    - + 2 + 1 = + 0
+    - + 2 + 2 = + 1
+```
 
