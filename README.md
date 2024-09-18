@@ -52,3 +52,82 @@ mod test {
 - identity: every node has a self-loop
 - composable: for every pair of nodes A and B, if there is a path from A to B and a path from B to C, there is a path from A to C
 ```
+## Section 2.7
+1. Define a higher-order function (or a function object) memoize in your favorite language. This function takes a pure function f as an argument and
+   returns a function that behaves almost exactly like f, except that it only
+   calls the original function once for every argument, stores the result internally, and subsequently returns this stored result every time it’s called
+   with the same argument. You can tell the memoized function from the
+   original by watching its performance. For instance, try to memoize a function that takes a long time to evaluate. You’ll have to wait for the result
+   the first time you call it, but on subsequent calls, with the same argument, you should get the result immediately.
+```rust
+use std::collections::HashMap;
+fn memoize<A, B, F>(mut f: F) -> impl FnMut(A) -> B
+where
+        A: Eq + Hash + Clone,
+        B: Clone,
+        F: FnMut(A) -> B,
+{
+   let mut cache: HashMap<A, B> = HashMap::new();
+   move |x: A| {
+      if cache.contains_key(&x) {
+         cache[&x].clone()
+      } else {
+         let y = f(x.clone());
+         cache.insert(x, y.clone());
+         y
+      }
+   }
+}
+```
+2. Try to memoize a function from your standard library that you normally use to produce random numbers. Does it work?
+```rust
+use rand::Rng;
+#[test]
+fn test_memoize() {
+   let mut rng = rand::thread_rng();
+   let mut memoized_rand = memoize(|_| rng.gen::<u32>());
+   for _ in 0..10 {
+      println!("{}", memoized_rand(()));
+   }
+}
+```
+No, it does not work. The random number generator is not pure.
+
+3. Most random number generators can be initialized with a seed. Implement a function that takes a seed, calls the random number generator with that seed, and returns the result. Memoize that function. Does it work?
+```rust
+#[test]
+fn test_memoize_seed() {
+   let mut memoized_rand = memoize(|seed: u32| {
+      let mut rng = rand::rngs::StdRng::seed_from_u64(seed as u64);
+      rng.gen::<u32>()
+   });
+   for _ in 0..10 {
+      println!("{}", memoized_rand(42));
+   }
+}
+```
+Yes, it works. The random number generator is now pure. 
+
+4. Which of these C++ functions are pure? Try to memoize them and observe what happens when you call them multiple times: memoized and not.
+```text
+(a) - pure; (b), (c), (d) - not pure
+```
+5. How many different functions are there from Bool to Bool? Can you implement them all?
+```rust
+fn id(x: bool) -> bool {
+    x
+}
+
+fn not(x: bool) -> bool {
+    !x
+}
+
+fn always(_: bool) -> bool {
+    true
+}
+
+fn never(_: bool) -> bool {
+    false
+}
+```
+
