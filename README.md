@@ -177,38 +177,57 @@ fn never(_: bool) -> bool {
 
 1. Construct the Kleisli category for partial functions (define composition and identity).
 ```rust
+#[derive(PartialEq,Debug)]
+enum Optional<T> {
+   Valid(T),
+   NotValid,
+}
+
+fn identity<T>(x: T) -> Optional<T> {
+   Valid(x)
+}
+
 fn compose<T, U, V>(
-   f1: impl Fn(T) -> Option<U>,
-   f2: impl Fn(U) -> Option<V>,
-) -> impl Fn(T) -> Option<V> {
+   f1: impl Fn(T) -> Optional<U>,
+   f2: impl Fn(U) -> Optional<V>,
+) -> impl Fn(T) -> Optional<V> {
    move |x: T| match f1(x) {
-      Some(f1out) => f2(f1out),
-      None => None,
+      Valid(f1out) => f2(f1out),
+      NotValid => NotValid,
    }
 }
 
-fn safe_reciprocal(x: f64) -> Option<f64> {
-    if x == 0.0 {
-        None
-    } else {
-        Some(1.0 / x)
-    }
+fn safe_reciprocal(x: f64) -> Optional<f64> {
+   if x == 0.0 {
+      NotValid
+   } else {
+      Valid(1.0 / x)
+   }
 }
 
-fn safe_root(x: f64) -> Option<f64> {
-    if x < 0.0 {
-        None
-    } else {
-        Some(x.sqrt())
-    }
+fn safe_root(x: f64) -> Optional<f64> {
+   if x < 0.0 {
+      NotValid
+   } else {
+      Valid(x.sqrt())
+   }
 }
 
- #[test]
- fn test_compose() {
-    let safe_root_reciprocal = compose(safe_root, safe_reciprocal);
-    assert_eq!(safe_root_reciprocal(4.0), Some(0.5));
-    assert_eq!(safe_root_reciprocal(-1.0), None);
-    assert_eq!(safe_root_reciprocal(0.0), None);
- }
+#[test]
+fn test_compose() {
+   let safe_root_reciprocal = compose(safe_root, safe_reciprocal);
+   assert_eq!(safe_root_reciprocal(4.0), Valid(0.5));
+   assert_eq!(safe_root_reciprocal(-1.0), NotValid);
+   assert_eq!(safe_root_reciprocal(0.0), NotValid);
+   let safe_root_identity = compose(safe_root, identity);
+   assert_eq!(safe_root_identity(4.0), Valid(2.0));
+   assert_eq!(safe_root_identity(-1.0), NotValid);
+   let identity_safe_root = compose(identity, safe_root);
+   assert_eq!(identity_safe_root(4.0), Valid(2.0));
+   assert_eq!(identity_safe_root(-1.0), NotValid);
+}
 
 ```
+## Section 5.8
+4. Implement the equivalent of Haskell Either as a generic type in your favorite language (other than Haskell).
+```rust
