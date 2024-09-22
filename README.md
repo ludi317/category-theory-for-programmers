@@ -231,3 +231,46 @@ fn test_compose() {
 ## Section 5.8
 4. Implement the equivalent of Haskell Either as a generic type in your favorite language (other than Haskell).
 ```rust
+#[derive(PartialEq,Debug)]
+enum Either<L,R> {
+    Left(L),
+    Right(R)
+}
+```
+5. Show that Either is a “better” coproduct than int equipped with two injections i and j:
+```text
+There exists a function m from Either to int that factorizes i and j, but there is no m' function from int to Either that factorizes i and j. 
+That's because i(0) = 0 and j(true) = 0. You could not tell if 0 came from i or j, and whether it should be a Left or Right.
+```
+```rust
+
+fn i(n: i32) -> i32 {
+    n
+}
+
+fn j(b: bool) -> i32 {
+    if b { 0 } else { 1 }
+}
+
+// factorizer :: (a -> c) -> (b -> c) -> Either a b -> c
+// returns the function m that factorizes i and j
+fn factorizer<A,B,C>(i: fn(n: A) -> C, j: fn(b: B) -> C) -> impl Fn(Either<A, B>) -> C {
+    move |x: Either<A, B>| {
+        match x {
+            Either::Left(a) => i(a),
+            Either::Right(b) => j(b),
+        }
+    }
+}
+
+ #[test]
+ fn test_factorizer() {
+     let m = factorizer(i, j);
+     let a: Either<i32, bool> = Either::Left(2);
+     assert_eq!(m(a), 2);
+     let b: Either<i32, bool> = Either::Right(false);
+     assert_eq!(m(b), 1);
+ }
+```
+6. Continuing the previous problem: How would you argue that int with the two injections i and j cannot be “better” than Either?
+```text
