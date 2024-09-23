@@ -19,12 +19,25 @@ fn to_words(a: String) -> Writer<Vec<String>> {
     ((&a).split(' ').map(|s| s.to_string()).collect(), 1)
 }
 
-fn compose_writer<A, B, C>(m1: fn(A) -> Writer<B>, m2: fn(B) -> Writer<C>) -> impl Fn(A) -> Writer<C> {
+fn id<A>(x:A) -> A {
+    x
+}
+
+fn return_writer<A>(a:A) -> Writer<A> {
+    (a, 0)
+}
+
+fn bind_writer<A, B, C>(m1: impl Fn(A) -> Writer<B>, m2: impl Fn(B) -> Writer<C>) -> impl Fn(A) -> Writer<C> {
     move |a| {
-        let (x, c1) = m1(a);
-        let (y, c2) = m2(x);
-        (y, c1 + c2)
+        let (b, n1) = m1(a);
+        let (c, n2) = m2(b);
+        (c, n1 + n2)
     }
+}
+
+// fmap "lifts" (a -> b) -> (Writer a -> Writer b). Functors map morphisms.
+fn fmap_writer<A, B>(f: fn(A) -> B) -> impl Fn(Writer<A>) -> Writer<B> {
+    bind_writer(id, move |x| return_writer(f(x)))
 }
 
 fn either_to_maybe<A>(x: Either<(), A>) -> Option<A> {
@@ -181,7 +194,7 @@ mod test {
 
     #[test]
     fn test_writer() {
-        let m = compose_writer(to_upper_case, to_words);
+        let m = bind_writer(to_upper_case, to_words);
         let (x, c) = m("hello world".to_string());
         assert_eq!(x, vec!["HELLO".to_string(), "WORLD".to_string()]);
         assert_eq!(c, 2);
