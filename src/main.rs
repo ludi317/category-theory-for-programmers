@@ -3,7 +3,29 @@ use rand::Rng;
 use std::collections::HashMap;
 use std::hash::Hash;
 
-fn main() {}
+fn main() {
+
+
+}
+
+// Writer monad
+type Writer<T> = (T, u32);
+
+fn to_upper_case(a: String) -> Writer<String> {
+    (a.to_uppercase(), 1)
+}
+
+fn to_words(a: String) -> Writer<Vec<String>> {
+    ((&a).split(' ').map(|s| s.to_string()).collect(), 1)
+}
+
+fn compose_writer<A, B, C>(m1: fn(A) -> Writer<B>, m2: fn(B) -> Writer<C>) -> impl Fn(A) -> Writer<C> {
+    move |a| {
+        let (x, c1) = m1(a);
+        let (y, c2) = m2(x);
+        (y, c1 + c2)
+    }
+}
 
 fn either_to_maybe<A>(x: Either<(), A>) -> Option<A> {
     match x {
@@ -155,5 +177,13 @@ mod test {
         for _ in 0..10 {
             println!("{}", memoized_rand(42));
         }
+    }
+
+    #[test]
+    fn test_writer() {
+        let m = compose_writer(to_upper_case, to_words);
+        let (x, c) = m("hello world".to_string());
+        assert_eq!(x, vec!["HELLO".to_string(), "WORLD".to_string()]);
+        assert_eq!(c, 2);
     }
 }
