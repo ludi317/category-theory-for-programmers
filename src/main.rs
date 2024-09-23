@@ -1,46 +1,52 @@
+use crate::Optional::{NotValid, Valid};
 use rand::Rng;
 use std::collections::HashMap;
 use std::hash::Hash;
-use crate::Optional::{NotValid, Valid};
 
-fn main() {
-    let m = factorizer(i, j);
-    let a: Either<i32, bool> = Either::Left(2);
-    let c = m(a);
-    println!("{:?}", c );
-    let b: Either<i32, bool> = Either::Right(false);
-    let c = m(b);
-    println!("{:?}", c )
+fn main() {}
+
+fn either_to_maybe<A>(x: Either<(), A>) -> Option<A> {
+    match x {
+        Either::Left(()) => None,
+        Either::Right(a) => Some(a),
+    }
 }
 
-#[derive(PartialEq,Debug)]
-enum Either<L,R> {
+fn maybe_to_either<A>(x: Option<A>) -> Either<(), A> {
+    match x {
+        None => Either::Left(()),
+        Some(a) => Either::Right(a),
+    }
+}
+
+#[derive(PartialEq, Debug, Copy, Clone)]
+enum Either<L, R> {
     Left(L),
-    Right(R)
+    Right(R),
 }
-
 
 fn i(n: i32) -> i32 {
     n
 }
 
 fn j(b: bool) -> i32 {
-    if b { 0 } else { 1 }
+    if b {
+        0
+    } else {
+        1
+    }
 }
 
 // factorizer :: (a -> c) -> (b -> c) -> Either a b -> c
 // returns the function m that factorizes i and j
-fn factorizer<A,B,C>(i: fn(n: A) -> C, j: fn(b: B) -> C) -> impl Fn(Either<A, B>) -> C {
-    move |x: Either<A, B>| {
-        match x {
-            Either::Left(a) => i(a),
-            Either::Right(b) => j(b),
-        }
+fn factorizer<A, B, C>(i: fn(n: A) -> C, j: fn(b: B) -> C) -> impl Fn(Either<A, B>) -> C {
+    move |x: Either<A, B>| match x {
+        Either::Left(a) => i(a),
+        Either::Right(b) => j(b),
     }
 }
 
-
-#[derive(PartialEq,Debug)]
+#[derive(PartialEq, Debug)]
 enum Optional<T> {
     Valid(T),
     NotValid,
@@ -76,8 +82,6 @@ fn safe_root(x: f64) -> Optional<f64> {
     }
 }
 
-
-
 fn memoize<A, B, F>(mut f: F) -> impl FnMut(A) -> B
 where
     A: Eq + Hash + Clone,
@@ -101,6 +105,14 @@ where
 mod test {
     use super::*;
     use rand::SeedableRng;
+
+    #[test]
+    fn test_either_to_maybe() {
+        let a: Either<(), i32> = Either::Right(1);
+        assert_eq!(maybe_to_either(either_to_maybe(a)), a);
+        let b: Either<(), i32> = Either::Left(());
+        assert_eq!(either_to_maybe(b), None);
+    }
 
     #[test]
     fn test_factorizer() {

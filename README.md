@@ -272,5 +272,28 @@ fn factorizer<A,B,C>(i: fn(n: A) -> C, j: fn(b: B) -> C) -> impl Fn(Either<A, B>
      assert_eq!(m(b), 1);
  }
 ```
-6. Continuing the previous problem: How would you argue that int with the two injections i and j cannot be “better” than Either?
-```text
+## Section 6.5
+1. Show the isomorphism between Maybe a and Either () a.
+```rust
+fn either_to_maybe<A>(x: Either<A, ()>) -> Option<A> {
+    match x {
+        Either::Left(a) => Some(a),
+        Either::Right(_) => None,
+    }
+}
+
+fn maybe_to_either<A>(x: Option<A>) -> Either<A, ()> {
+    match x {
+        Some(a) => Either::Left(a),
+        None => Either::Right(()),
+    }
+}
+
+    #[test]
+    fn test_either_to_maybe() {
+        let a: Either<i32, ()> = Either::Left(1);
+        assert_eq!(maybe_to_either(either_to_maybe(a)), a);
+        let b: Either<i32, ()> = Either::Right(());
+        assert_eq!(either_to_maybe(b), None);
+    }
+```
