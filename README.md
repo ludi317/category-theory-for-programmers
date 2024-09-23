@@ -275,18 +275,18 @@ fn factorizer<A,B,C>(i: fn(n: A) -> C, j: fn(b: B) -> C) -> impl Fn(Either<A, B>
 ## Section 6.5
 1. Show the isomorphism between Maybe a and Either () a.
 ```rust
-fn either_to_maybe<A>(x: Either<A, ()>) -> Option<A> {
-    match x {
-        Either::Left(a) => Some(a),
-        Either::Right(_) => None,
-    }
+fn either_to_maybe<A>(x: Either<(), A>) -> Option<A> {
+   match x {
+      Either::Left(()) => None,
+      Either::Right(a) => Some(a),
+   }
 }
 
-fn maybe_to_either<A>(x: Option<A>) -> Either<A, ()> {
-    match x {
-        Some(a) => Either::Left(a),
-        None => Either::Right(()),
-    }
+fn maybe_to_either<A>(x: Option<A>) -> Either<(), A> {
+   match x {
+      None => Either::Left(()),
+      Some(a) => Either::Right(a),
+   }
 }
 
     #[test]
