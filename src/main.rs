@@ -27,10 +27,15 @@ fn return_writer<A>(a:A) -> Writer<A> {
     (a, 0)
 }
 
+// How m1=id, m2=|a| return_writer(f(a)) as args to bind_writer make fmap_writer:
+// (Writer a -> Writer a) -> (a -> Writer(f(a)) -> (Writer a -> Writer b)
+
+
+// (a -> Writer b) -> (b -> Writer c) -> (a -> Writer c)
 fn bind_writer<A, B, C>(m1: impl Fn(A) -> Writer<B>, m2: impl Fn(B) -> Writer<C>) -> impl Fn(A) -> Writer<C> {
     move |a| {
-        let (b, n1) = m1(a);
-        let (c, n2) = m2(b);
+        let (b, n1) = m1(a); // unpack
+        let (c, n2) = m2(b); // apply f, repack
         (c, n1 + n2)
     }
 }
