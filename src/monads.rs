@@ -20,32 +20,29 @@ fn return_counter<A>(a:A) -> Counter<A> {
 
 // (a -> m b) -> (b -> m c) -> (a -> m c)
 fn fish_counter<A, B, C>(m1: impl Fn(A) -> Counter<B>, m2: impl Fn(B) -> Counter<C>) -> impl Fn(A) -> Counter<C> {
-    move |a| {
+    move |a: A| {
         let (b, n1) = m1(a); // apply m1
         let (c, n2) = m2(b); // apply m2
         (c, n1 + n2) // concat, repack
     }
 }
 
-// How m1=id, m2=|a| return_m(f(a)) as args to fish_m make fmap_m:
-// (m a -> m a) -> (a -> m(f(a)) -> (m a -> m b)
-
 // (a -> b) -> (m a -> m b)
-// fmap "lifts" functions. Functors map morphisms.
 fn fmap_counter<A, B>(f: impl Fn(A) -> B) -> impl Fn(Counter<A>) -> Counter<B> {
-    fish_counter(id, move |x| return_counter(f(x)))
+    fish_counter(id, move |x: A| return_counter(f(x)))
 }
 
 // (a -> b) -> (m a -> m b)
 fn fmap_counter2<A, B>(f: impl Fn(A) -> B) -> impl Fn(Counter<A>) -> Counter<B> {
-    move |(a, n)| (f(a), n)
+    move |(a, n): Counter<A> | (f(a), n)
 }
 
-// (a -> b) -> m a -> m b
-fn fmap_counter3<A, B>(f: impl Fn(A) -> B, c: Counter<A>) -> Counter<B> {
-    bind_counter(c, |x| return_counter(f(x)))
+// (a -> b) -> (m a -> m b)
+fn fmap_counter3<A, B>(f: impl Fn(A) -> B) -> impl Fn(Counter<A>) -> Counter<B> {
+    move |c: Counter<A>| {
+        bind_counter(c, |x| return_counter(f(x)))
+    }
 }
-
 // m a -> (a -> m b) -> m b
 fn bind_counter<A, B>(c: Counter<A>, f: impl Fn(A) -> Counter<B>) -> Counter<B> {
     let (a, n1) = c; // unpack
@@ -73,6 +70,7 @@ Monoid laws:
 
 Functor laws. A type constructor and its fmap function are a functor if they obey the following laws:
 - A functor applies a function to a wrapped value
+- fmap "lifts" functions. Functors map morphisms.
 fmap :: (a -> b) -> m a -> m b
 1. fmap id = id                     -- identity
 2. fmap (f . g) = fmap f . fmap g   -- composition
@@ -86,7 +84,7 @@ Monad laws (ie standard composition laws for Kleisli category):
 2. return >=> f = f                  -- left unit
 3. f >=> return = f                  -- right unit
 
-Monads are functors.
+Monads are functors. Bind and return give fmap.
 Monads are a high-level monoid. A monad is a monoid in the category of endofunctors.
  */
 
