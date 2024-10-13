@@ -297,4 +297,41 @@ fn maybe_to_either<A>(x: Option<A>) -> Either<(), A> {
         assert_eq!(either_to_maybe(b), None);
     }
 ```
-## Sec
+## Section 7.4
+3. Implement the reader functor in your second favorite language (the first
+   being Haskell, of course).
+```rust
+struct Reader<E, A> {
+    run: Box<dyn Fn(E) -> A>,
+}
+
+impl <E: 'static + Copy, A: 'static> Reader<E, A> {
+    // (e -> a) -> Reader(e -> a)
+    fn new<F: 'static + Fn(E) -> A>(f: F) -> Reader<E, A> {
+        Reader{run:Box::new(f)} // wrap
+    }
+
+    // (a -> b) -> Reader(e -> a) -> Reader(e -> b)
+    fn fmap<B: 'static, F: 'static + Fn(A) -> B>(self, f: F) -> Reader<E, B> {
+        Reader::new(move |env: E| { // Reader(e -> b)
+            let a = (self.run)(env); // a
+            f(a) // b
+        })
+    }
+
+    // Reader(e -> a) -> e -> a
+    fn run(self, env: E) -> A {
+        (self.run)(env)
+    }
+
+    // Reader(e -> a) -> (a -> Reader(e -> b)) -> Reader(e -> b)
+    fn bind<B: 'static, F: 'static + Fn(A) -> Reader<E, B>>(self, f: F) -> Reader<E, B> {
+        Reader::new(move |env: E| { // Reader(e -> b)
+            let a = (self.run)(env); // a
+            let next_reader = f(a); // Reader(e -> b)
+            (next_reader.run)(env) // b
+        })
+    }
+}
+```
+
