@@ -40,7 +40,7 @@ fn fmap_counter2<A, B>(f: impl Fn(A) -> B) -> impl Fn(Counter<A>) -> Counter<B> 
 // (a -> b) -> (m a -> m b)
 fn fmap_counter3<A, B>(f: impl Fn(A) -> B) -> impl Fn(Counter<A>) -> Counter<B> {
     move |c: Counter<A>| {
-        bind_counter(c, |x| return_counter(f(x)))
+        bind_counter(c, |a| return_counter(f(a)))
     }
 }
 // m a -> (a -> m b) -> m b
@@ -83,6 +83,9 @@ Monad laws (ie standard composition laws for Kleisli category):
 1. (f >=> g) >=> h = f >=> (g >=> h) -- associativity
 2. return >=> f = f                  -- left unit
 3. f >=> return = f                  -- right unit
+
+Bind operator:
+>>= :: m a -> (a -> m b) -> m b
 
 Monads are functors. Bind and return give fmap.
 Monads are a high-level monoid. A monad is a monoid in the category of endofunctors.

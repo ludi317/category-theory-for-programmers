@@ -1,4 +1,5 @@
 mod monads;
+mod reader_monad;
 
 use crate::Optional::{NotValid, Valid};
 use rand::Rng;
