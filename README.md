@@ -334,4 +334,28 @@ impl <E: 'static + Copy, A: 'static> Reader<E, A> {
     }
 }
 ```
+## Section 8.9
+5. Define a bifunctor in a language other than Haskell. Implement bimap for a generic pair in that language.
+```rust
+trait Bifunctor<A, B> {
+    type Output<A2, B2>;
 
+    fn bimap<A2, B2, F, G>(self, f: F, g: G) -> Self::Output<A2, B2>
+    where
+        F: FnOnce(A) -> A2,
+        G: FnOnce(B) -> B2;
+}
+
+impl<A, B> Bifunctor<A, B> for (A, B) {
+    type Output<A2, B2> = (A2, B2);
+
+    fn bimap<A2, B2, F, G>(self, f: F, g: G) -> Self::Output<A2, B2>
+    where
+        F: FnOnce(A) -> A2,
+        G: FnOnce(B) -> B2,
+    {
+        let (a, b) = self;
+        (f(a), g(b))
+    }
+}
+```

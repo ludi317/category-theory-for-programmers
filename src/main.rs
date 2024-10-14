@@ -1,5 +1,6 @@
 mod monads;
 mod reader_monad;
+mod bifunctor;
 
 use crate::Optional::{NotValid, Valid};
 use rand::Rng;
